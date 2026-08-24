@@ -1,0 +1,60 @@
+id: quality-interface-hotspot-reasoning
+type: llm_reasoning
+description: Interpret binder quality when interface confidence and hotspot coverage are weak.
+applies_to:
+  - BinderQualityAnalysisAgent
+  - HypothesisAgent
+  - DiagnosticCoachAgent
+  - InputConfigurationAgent
+trigger:
+  tags_any:
+    - hotspot_miss
+    - hotspot_not_covered
+    - binding_pose_failure
+    - primary_gate_high_pae
+    - weak_or_tiny_interface
+required_inputs:
+  - evaluation.tag_counts
+  - evaluation.metric_facts
+  - structural_analysis.aggregate_tags
+  - structural_analysis.summaries
+guidance:
+  - Distinguish foldability from binder-target interface confidence.
+  - Explain hotspot miss with supplied structural contacts and metric facts only.
+  - Prefer interventions with expected next-round signals, not broad prose.
+runtime_logic:
+  role: prompt_guidance_only
+  non_overridable_modules:
+    - EvaluationAgent
+    - StructureEvaluationAgent
+    - RollbackController
+  notes:
+    - This skill may guide explanation and config-change proposals.
+    - All executable changes still pass supported_config_changes and clamp_config_with_inertia.
+output_schema:
+  required_fields:
+    - evidence
+    - intervention
+    - expected_signal_next_round
+    - risk
+  config_change_field: config_parameter_changes
+allowed_config_keys:
+  - diffusion_batch_size
+  - auxiliary_hotspots
+  - auxiliary_hotspots
+  - epitope_crop_mode
+  - binder_lengths
+expected_signals:
+  improve:
+    - design_to_target_iptm
+    - min_design_to_target_pae
+    - hotspot_contact
+  watch:
+    - design_ptm
+    - designfolding-filter_rmsd
+risk: Stronger hotspot pressure can over-constrain foldability or reduce pose diversity.
+
+role_metadata:
+  roles:
+    - positive
+    - negative

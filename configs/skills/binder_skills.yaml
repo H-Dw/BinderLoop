@@ -1,0 +1,35 @@
+schema_version: 1
+description: >
+  Default binder-harness skill registry index. Each concrete skill lives in its
+  own YAML file so inputs, outputs, trigger rules and execution guidance can be
+  reviewed independently. Skills provide structured guidance only; deterministic
+  scoring, rollback, template gates, length bounds and config validation remain
+  the source of truth.
+
+include:
+  - deterministic_policy/deterministic-aggregate-evidence-budget.yaml
+  - llm_reasoning/contrastive-active-learning-examples.yaml
+  - llm_reasoning/quality-interface-hotspot-reasoning.yaml
+  - llm_reasoning/hotspot-structure-geometry.yaml
+  - llm_reasoning/hotspot-physicochemical.yaml
+  - llm_reasoning/hotspot-round-feedback.yaml
+  - llm_reasoning/quality-fragment-reuse-reasoning.yaml
+  - llm_reasoning/quality-manager-arbitration.yaml
+  - llm_reasoning/self-improvement-evidence-grounding.yaml
+  - llm_reasoning/self-improvement-module-routing.yaml
+  - llm_reasoning/self-improvement-semantic-matching.yaml
+  - llm_reasoning/self-improvement-target-generalization.yaml
+  - llm_reasoning/strategy-conflict-trajectory-evidence.yaml
+  - llm_reasoning/strategy-conflict-physical-consistency.yaml
+  - strategy/strategy-contrastive-positive-exploit.yaml
+  - strategy/strategy-relaxed-pose-explore.yaml
+  - strategy/strategy-sequence-repair.yaml
+  - strategy/strategy-hotspot-focus-crop.yaml
+  - strategy/strategy-template-strict-exploit.yaml
+  - strategy/strategy-conflict-controlled-experiment.yaml
+  - deterministic_policy/deterministic-reward-core-objective.yaml
+  - deterministic_policy/deterministic-rollback-branch-pruning.yaml
+  - deterministic_policy/deterministic-template-gate.yaml
+  - deterministic_policy/deterministic-length-bounds.yaml
+  - deterministic_policy/deterministic-self-improvement-governance.yaml
+  - deterministic_policy/deterministic-strategy-conflict-governance.yaml

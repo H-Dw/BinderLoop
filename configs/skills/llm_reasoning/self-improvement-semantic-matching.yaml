@@ -1,0 +1,30 @@
+id: self-improvement-semantic-matching
+type: llm_reasoning
+priority: 850
+description: Compare complete learned rules using a fixed semantic relation taxonomy.
+applies_to:
+  - SelfImprovementSkillAgent
+trigger:
+  always: true
+required_inputs:
+  - current_skill.modules
+  - current_skill.semantic_relations
+guidance:
+  - Compare complete rule bodies and canonical signatures, not keywords alone.
+  - Use equivalent only when condition and action are materially the same.
+  - Use subsumes or subsumed_by when one rule safely generalizes the other.
+  - Keep complementary rules separate and route incompatible actions under overlapping conditions to contradictory.
+  - Use distinct when overlap is superficial or evidence is insufficient.
+  - Low-confidence comparisons must not cause a merge.
+runtime_logic:
+  role: updater_contract
+  strict_required_inputs: true
+output_schema:
+  relation_enum:
+    - equivalent
+    - subsumes
+    - subsumed_by
+    - complementary
+    - contradictory
+    - distinct
+risk: Over-aggressive semantic merging can erase valid conditional distinctions.

@@ -1,0 +1,39 @@
+id: strategy-hotspot-focus-crop
+type: strategy
+description: Focus sampling around the requested hotspot patch when hotspot coverage remains the bottleneck.
+applies_to:
+  - ActiveLearningPolicyAgent
+  - StrategyLevelActiveLearner
+  - InputConfigurationAgent
+trigger:
+  tags_any:
+    - hotspot_miss
+    - hotspot_not_covered
+required_inputs:
+  - structural_analysis.aggregate_tags
+  - structural_analysis.summaries.hotspot_contacts
+  - constraints
+  - current_config
+guidance:
+  - Use only when epitope crop is not hard-disabled by user constraints.
+  - Preserve original user hotspots and target definition provenance.
+  - Length selection must be delegated to BinderLengthPolicyAgent and orchestrator clamps.
+runtime_logic:
+  materializer: StrategyLevelActiveLearner
+  branch_role: repair
+  maps_to_builtin_arm: target_context_focus
+  parameterization: derived_from_current_config_constraints_and_nearby_contacts
+params:
+  arm_name: target_context_focus
+allowed_config_keys:
+  - epitope_crop_mode
+  - auxiliary_hotspots
+  - binder_lengths
+expected_signals:
+  improve:
+    - hotspot_contact
+    - design_to_target_iptm
+  watch:
+    - design_ptm
+    - designfolding-filter_rmsd
+risk: Crop/hotspot pressure can overfit to an unproductive local patch.

@@ -1,0 +1,24 @@
+id: deterministic-strategy-conflict-governance
+type: deterministic_policy
+priority: 1100
+description: Bound conflict arbitration by executable ownership, safety and physical controls.
+applies_to:
+  - StrategyConflictResolutionAgent
+trigger:
+  paths_truthy:
+    - conflicts
+required_inputs:
+  - conflicts
+  - current_config
+guidance:
+  - Conflict decisions are advisory until config contracts, ownership, inertia and hard bounds pass.
+  - The resolver cannot change target definition, budget, reward, rollback or template provenance.
+  - Low-confidence or unavailable LLM resolution must hold or revert instead of guessing.
+runtime_logic:
+  role: audit_guardrail_only
+  owner: BinderDesignOrchestrator
+  strict_required_inputs: true
+deterministic_controls:
+  owner: BinderDesignOrchestrator
+  non_overridable: true
+risk: Unbounded arbitration can bypass the safeguards it is intended to support.

@@ -1,0 +1,17 @@
+id: quality-manager-arbitration
+type: llm_reasoning
+description: Arbitrate contradictions between bounded quality specialist findings.
+applies_to:
+  - BinderQualityAnalysisAgent
+trigger:
+  always: true
+guidance:
+  - Accept or reject finding IDs only from the supplied specialist set.
+  - Prefer registered counterevidence and hold when physical consistency is unresolved.
+  - Emit bounded strategy intents without executable parameter values.
+priority: 850
+role_metadata:
+  roles:
+    - manager
+  arbitration_only: true
+risk: Arbitration must not rewrite specialist claims or invent evidence.

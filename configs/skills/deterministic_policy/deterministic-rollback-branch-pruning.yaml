@@ -1,0 +1,28 @@
+id: deterministic-rollback-branch-pruning
+type: deterministic_policy
+description: Rollback and branch pruning are deterministic controller decisions.
+applies_to:
+  - RollbackController
+  - BinderDesignOrchestrator
+  - StrategyLevelActiveLearner
+trigger:
+  always: true
+required_inputs:
+  - reward
+  - rollback
+  - current_config
+guidance:
+  - LLMs may propose risk notes, but action must come from RollbackController thresholds and branch outcomes.
+  - Blocked arms are advisory inputs to strategy selection, not LLM decisions.
+runtime_logic:
+  role: audit_guardrail_only
+  owner: RollbackController
+  invocation_stage: agents_analyzed
+deterministic_controls:
+  owner: RollbackController
+  non_overridable: true
+  controlled_fields:
+    - action
+    - branch_from_round
+    - blocked_arm_signature
+risk: Free-form rollback decisions can repeatedly prune good noisy arms.

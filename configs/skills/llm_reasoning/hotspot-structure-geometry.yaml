@@ -1,0 +1,28 @@
+id: hotspot-structure-geometry
+type: llm_reasoning
+description: Select hotspot residues from surface geometry, clustering, and burial without using protein identity.
+applies_to:
+  - HotspotSelectionAgent
+trigger:
+  always: true
+required_inputs:
+  - residue_table.residues
+guidance:
+  - Prefer solvent-exposed residues (high exposure_pct, low ca_neighbors) over buried core residues.
+  - Keep selected residues in one spatially compact patch; avoid isolated singles far along the sequence.
+  - Prefer loop/edge-like exposed positions over fully packed interior positions.
+  - Do not name the protein, PDB ID, or a literature epitope; argue only from the residue table.
+runtime_logic:
+  role: prompt_guidance_only
+output_schema:
+  required_fields:
+    - hotspots
+    - rationale
+allowed_config_keys: []
+expected_signals:
+  improve:
+    - hotspot_contact
+    - design_to_target_iptm
+  watch:
+    - min_design_to_target_pae
+risk: Over-dispersed residues can over-constrain the binder pose and collapse diversity.

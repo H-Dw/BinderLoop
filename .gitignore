@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Build / test artifacts
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime outputs and generated Taiji configs/logs
+outputs/
+*.log
+*.tmp
+
+# Local/editor files
+.DS_Store
+.vscode/
+.idea/
+.claude/settings.local.json
+.env
+.env.*
+*.pem
+*.key
+
+# Local LLM/API-key configs. Keep configs/llm_endpoints.example.json only.
+configs/llm_endpoints.local.json
+configs/llm_endpoints.*.json
+configs/*key*.json
+configs/*secret*.json
+!configs/llm_endpoints.example.json
+
+# Sensitive Taiji simple configs in examples; keep sanitized templates instead.
+examples/bg_example/*v100.json
+examples/bg_example/benchmark_*.json
+examples/bg_example/boltzgen_test_*.json
+!examples/bg_example/*.template.json
+
+# Large/generated model artifacts
+*.ckpt
+*.pt
+*.pth
+*.pkl
+configs/llm_endpoints.gpt.json
+
+.agent
+.learnings/
+aceph/

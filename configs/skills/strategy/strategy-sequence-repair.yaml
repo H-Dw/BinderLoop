@@ -1,0 +1,39 @@
+id: strategy-sequence-repair
+type: strategy
+description: Repair inverse-fold settings when binders fail to refold or show weak sequence designability.
+applies_to:
+  - ActiveLearningPolicyAgent
+  - StrategyLevelActiveLearner
+  - InputConfigurationAgent
+trigger:
+  tags_any:
+    - folding_failure
+    - binder_chain_break
+required_inputs:
+  - evaluation.tag_counts
+  - evaluation.core_metric_stats
+  - structural_analysis.aggregate_tags
+  - current_config
+guidance:
+  - Use this arm to repair sequence design, not to change backbone sampler knobs.
+  - BoltzGen sequence repair may enable filter_biased and inverse_fold_avoid.
+  - RFD3 sequence repair may raise ProteinMPNN temperature inside the tool contract.
+  - Do not emit the other model's sequence flags.
+runtime_logic:
+  materializer: StrategyLevelActiveLearner
+  branch_role: repair
+  maps_to_builtin_arm: sequence_repair
+  parameterization: derived_from_bound_sequence_tool
+params:
+  arm_name: sequence_repair
+allowed_config_keys:
+  - filter_biased
+  - inverse_fold_avoid
+  - temperature
+expected_signals:
+  improve:
+    - sequence_designability
+    - binder_plddt
+  watch:
+    - design_to_target_iptm
+risk: Sequence diversity may drop if repair is too conservative.

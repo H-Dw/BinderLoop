@@ -1,0 +1,29 @@
+id: deterministic-template-gate
+type: deterministic_policy
+description: Fragment template selection is gated by structural provenance and PAE.
+applies_to:
+  - FragmentTemplateMiningAgent
+  - BinderQualityAnalysisAgent
+  - StrategyLevelActiveLearner
+trigger:
+  paths_truthy:
+    - structural_analysis.summaries
+required_inputs:
+  - structural_analysis.summaries
+  - fragment_templates.library
+  - current_config
+guidance:
+  - LLM output may discuss fragment reuse but must not emit binder_template or binder_templates.
+  - FragmentTemplateMiningAgent owns template provenance, gate metric and template library merge.
+runtime_logic:
+  role: audit_guardrail_only
+  owner: FragmentTemplateMiningAgent
+  invocation_stage: structures_analyzed
+deterministic_controls:
+  owner: FragmentTemplateMiningAgent
+  non_overridable: true
+  controlled_fields:
+    - binder_template
+    - binder_templates
+    - template_conditioned_fraction
+risk: Ungated template use can amplify false-positive local structures.

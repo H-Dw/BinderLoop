@@ -1,0 +1,31 @@
+id: deterministic-length-bounds
+type: deterministic_policy
+description: Binder length recommendations must remain inside user range and discrete step.
+applies_to:
+  - BinderLengthPolicyAgent
+  - ActiveLearningPolicyAgent
+  - InputConfigurationAgent
+  - StrategyLevelActiveLearner
+trigger:
+  always: true
+required_inputs:
+  - current_config.binder_lengths
+  - current_config.binder_length_range
+  - binder_length_recommendation
+guidance:
+  - Skills may suggest length policies, but final binder_lengths must be clamped by the orchestrator.
+  - Prefer local breadth around successful lengths unless foldability or interface pose evidence supports broadening.
+runtime_logic:
+  role: audit_guardrail_only
+  owner: BinderLengthPolicyAgent_and_orchestrator_length_clamp
+  invocation_stage: structures_analyzed_and_next_jobs_proposed
+deterministic_controls:
+  owner: BinderLengthPolicyAgent_and_orchestrator_length_clamp
+  non_overridable: true
+  controlled_fields:
+    - binder_lengths
+    - binder_length_range
+    - binder_length_step
+allowed_config_keys:
+  - binder_lengths
+risk: Unbounded length jumps confound strategy attribution and budget use.

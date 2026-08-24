@@ -1,0 +1,20 @@
+id: strategy-conflict-physical-consistency
+type: llm_reasoning
+priority: 850
+description: Arbitrate strategy conflicts using binder-interface physical consistency.
+applies_to:
+  - StrategyConflictResolutionAgent
+trigger:
+  paths_truthy:
+    - conflicts
+required_inputs:
+  - evaluation
+  - structure_phenotype
+guidance:
+  - Check interface confidence and PAE together with pTM, refold RMSD and structural reliability.
+  - Treat hotspot contact, clash and diversity as conditional signals rather than replacements for the core objective.
+  - Reject physical explanations contradicted by immutable metric facts.
+runtime_logic:
+  role: conflict_resolver_contract
+  strict_required_inputs: true
+risk: Optimizing one physical metric can degrade the complete binder objective.

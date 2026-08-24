@@ -1,0 +1,39 @@
+id: strategy-relaxed-pose-explore
+type: strategy
+description: Recover binder-target pose diversity when interfaces are weak or high-PAE despite acceptable foldability.
+applies_to:
+  - ActiveLearningPolicyAgent
+  - StrategyLevelActiveLearner
+  - InputConfigurationAgent
+trigger:
+  tags_any:
+    - binding_pose_failure
+    - primary_gate_high_pae
+    - weak_or_tiny_interface
+required_inputs:
+  - evaluation.tag_counts
+  - evaluation.core_metric_stats
+  - structural_analysis.aggregate_tags
+  - current_config
+guidance:
+  - Use this arm to explore alternative binder-target poses when binders fold but do not bind confidently.
+  - Do not remove user hotspots; relax pressure through the deterministic arm policy and config clamps.
+  - Length changes must be relative to the current/user-allowed length range, never target-specific constants.
+runtime_logic:
+  materializer: StrategyLevelActiveLearner
+  branch_role: exploration
+  maps_to_builtin_arm: sampler_explore
+  parameterization: derived_from_current_config_and_length_bounds
+params:
+  arm_name: sampler_explore
+allowed_config_keys:
+  - diffusion_batch_size
+  - binder_lengths
+  - alpha
+expected_signals:
+  improve:
+    - mean_design_to_target_iptm
+    - min_design_to_target_pae
+  watch:
+    - hotspot_miss
+risk: Hotspot contact may drop if exploration becomes too unconstrained.

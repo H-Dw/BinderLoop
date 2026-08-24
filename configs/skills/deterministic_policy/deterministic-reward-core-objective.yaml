@@ -1,0 +1,30 @@
+id: deterministic-reward-core-objective
+type: deterministic_policy
+description: Reward must stay deterministic and core-objective based.
+applies_to:
+  - RollbackController
+  - BinderDesignOrchestrator
+trigger:
+  always: true
+required_inputs:
+  - evaluation.metric_facts
+  - evaluation.core_metric_stats
+  - reward
+guidance:
+  - LLMs may explain reward trends but must not compute or override round_reward.
+  - Use metric facts and core_metric_stats for audit text.
+runtime_logic:
+  role: audit_guardrail_only
+  owner: round_reward
+  invocation_stage: agents_analyzed
+deterministic_controls:
+  owner: round_reward
+  non_overridable: true
+  audit_artifact: rollback_decision.json
+expected_signals:
+  primary:
+    - design_to_target_iptm
+    - min_design_to_target_pae
+    - design_ptm
+    - designfolding-filter_rmsd
+risk: Allowing LLM-scored reward would make rollback irreproducible.

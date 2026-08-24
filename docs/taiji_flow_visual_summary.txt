@@ -1,0 +1,349 @@
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                          TAIJI SUBMISSION FLOW - VISUAL SUMMARY                                              ║
+║                        Binder-Harness BoltzGen Complete Pipeline                                             ║
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: LOCAL GENERATION                                                                                      │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                                 │
+│  DesignSpecAgent.create_boltzgen_run_spec()                                                                    │
+│  ├─ Input: DesignJob, params                                                                                  │
+│  ├─ Create local package structure:                                                                           │
+│  │  ├─ {output_dir}/taiji_project_package/                                                                   │
+│  │  │  ├─ inputs/IL-17A.cif                     (target protein)                                             │
+│  │  │  ├─ configs/boltzgen_design_spec.yaml     (design specification)                                       │
+│  │  │  ├─ configs/boltzgen_parameter_plan.yaml  (all parameters)                                             │
+│  │  │  ├─ scripts/run_boltzgen_full.sh          (executable GPU script)                                      │
+│  │  │  ├─ scripts/run_boltzgen_analysis_local.sh (if analysis_location="local")                              │
+│  │  │  ├─ logs/                                  (empty, filled during run)                                   │
+│  │  │  ├─ outputs/boltzgen_output/              (empty, filled during run)                                   │
+│  │  │  └─ boltzgen_run_manifest.json            (BoltzGenRunSpec serialized)                                │
+│  │                                                                                                            │
+│  ├─ Returns: BoltzGenRunSpec with LOCAL paths                                                                │
+│  │  ├─ package_dir: "/tmp/round0_len50_seed0/taiji_project_package"                                         │
+│  │  ├─ run_script_path: ".../scripts/run_boltzgen_full.sh"                                                   │
+│  │  ├─ output_dir: ".../outputs/boltzgen_output"                                                            │
+│  │  └─ expected_outputs: {all local paths}                                                                  │
+│  │                                                                                                            │
+│  └─ Step selection logic:                                                                                    │
+│     ├─ IF analysis_location="local" (default):                                                              │
+│     │  └─ Taiji runs: ["design", "inverse_folding", "folding", "design_folding"]                           │
+│     │     → GPU generation only (fast, ~minutes)                                                            │
+│     │                                                                                                        │
+│     └─ IF analysis_location="taiji":                                                                        │
+│        └─ Taiji runs: ["design", "inverse_folding", "folding", "design_folding", "analysis", "filtering"]  │
+│           → Full pipeline (slow, ~hours) including analysis on GPU                                         │
+│                                                                                                             │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                            ↓
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: SYNC & CONFIGURE                                                                                      │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                                 │
+│ A) SYNC PACKAGE TO REMOTE CEPH                                                                               │
+│    ────────────────────────────                                                                              │
+│    sync_package_to_remote_run_dir(package_dir, task_flag)                                                   │
+│                                                                                                               │
+│    Local source path:                                                                                         │
+│    └─ /tmp/round0_len50_seed0/taiji_project_package                                                         │
+│                                                                                                               │
+│        │ shutil.copytree() with symlinks=True                                                               │
+│        │ (destructive: removes existing remote package)                                                     │
+│        ↓                                                                                                     │
+│                                                                                                               │
+│    Remote destination path:                                                                                  │
+│    └─ /aceph/daweihuang/dataset/proteo_benchmark/boltzgen_harness_tests/{task_flag}/taiji_project_package   │
+│       └─ All files copied, maintains directory structure                                                    │
+│                                                                                                               │
+│    Returns: remote_package_dir = Path("/aceph/.../{task_flag}/taiji_project_package")                       │
+│                                                                                                               │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────────────   │
+│                                                                                                               │
+│ B) UPDATE RUNSPEC TO REMOTE PATHS                                                                           │
+│    ────────────────────────────────                                                                         │
+│    point_run_spec_to_package(run_spec, remote_package_dir)                                                 │
+│                                                                                                               │
+│    Mutates run_spec fields (IN-PLACE):                                                                      │
+│                                                                                                               │
+│    Before:                              After:                                                              │
+│    ├─ package_dir: "/tmp/..."      ├─ package_dir: "/aceph/.../taiji_project_package"                    │
+│    ├─ run_script_path: "/tmp/..."  ├─ run_script_path: "/aceph/.../scripts/run_boltzgen_full.sh"         │
+│    ├─ output_dir: "/tmp/..."       ├─ output_dir: "/aceph/.../outputs/boltzgen_output"                   │
+│    ├─ log_file: "/tmp/..."         ├─ log_file: "/aceph/.../logs/boltzgen_full.log"                      │
+│    └─ expected_outputs: {...}      └─ expected_outputs: {all /aceph/... paths}                          │
+│                                                                                                               │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────────────   │
+│                                                                                                               │
+│ C) BUILD TAIJI OPTIONS DICTIONARY                                                                           │
+│    ──────────────────────────────                                                                           │
+│    taiji_options = {                                                                                         │
+│        "business_flag": "pathology_gpu_chongqing",                                                          │
+│        "project_id": 192631,                                                                                │
+│        "image_full_name": "mirrors.tencent.com/davedwhuang/boltzgen:cu118",                               │
+│        "GPUName": "V100",                                                                                    │
+│        "host_gpu_num": 1,          # GPU allocation                                                         │
+│        "host_num": 1,              # Host allocation                                                        │
+│        "version": "v2.0",          # Taiji version                                                          │
+│        "dataset_id": "8b1d82...",  # Pre-uploaded dataset ID                                               │
+│        "model_id": "8b1d81...",    # Pre-uploaded model ID                                                │
+│        "priority_level": "HIGH",                                                                            │
+│        "quota_type": "public",                                                                              │
+│        "location": "cq",                                                                                     │
+│        "remote_project_dir": "/aceph/.../taiji_project_package",  # ⭐ CRITICAL                           │
+│        "envs": {"CEPH_SECRET": "..."}                             # For Ceph mount                        │
+│    }                                                                                                         │
+│                                                                                                               │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────────────   │
+│                                                                                                               │
+│ D) CREATE TAIJI SUBMIT SPEC                                                                                 │
+│    ────────────────────────────                                                                             │
+│    TaijiExecutionAgent.create_boltzgen_taiji_spec(run_spec, taiji_options=taiji_options)                   │
+│                                                                                                               │
+│    Extract remote_project_dir from taiji_options                                                            │
+│        ↓                                                                                                    │
+│    Build start_cmd via _build_start_cmd(remote_project_dir):                                               │
+│                                                                                                               │
+│    ╔─────────────────────────────────────────────────────────────────────────────╗                          │
+│    ║ TAIJI STARTUP COMMAND (embedded in JSON config)                             ║                          │
+│    ║─────────────────────────────────────────────────────────────────────────────║                          │
+│    ║ bash -lc '                                                                  ║                          │
+│    ║   set -euo pipefail                                                        ║                          │
+│    ║   mkdir -p /aceph/daweihuang                                               ║                          │
+│    ║   if ! mountpoint -q /aceph/daweihuang 2>/dev/null; then                  ║                          │
+│    ║     if [[ -n "${CEPH_SECRET:-}" ]]; then                                  ║                          │
+│    ║       mount -t ceph 11.18.83.17:6789:... \                               ║                          │
+│    ║         /aceph/daweihuang -o name=fandiwubuddy1,secret="${CEPH_SECRET}"  ║                          │
+│    ║     else                                                                    ║                          │
+│    ║       exit 16  # Ceph not accessible                                       ║                          │
+│    ║     fi                                                                      ║                          │
+│    ║   fi                                                                        ║                          │
+│    ║   WORKSPACE=/aceph/.../taiji_project_package  # ⭐ remote_project_dir     ║                          │
+│    ║   cd "$WORKSPACE"                                                           ║                          │
+│    ║   if [[ ! -f scripts/run_boltzgen_full.sh && -f taiji_project_package/scripts/... ]]; then          ║                          │
+│    ║     cd taiji_project_package  # Fallback if nested                         ║                          │
+│    ║   fi                                                                        ║                          │
+│    ║   bash scripts/run_boltzgen_full.sh  # Execute from package root          ║                          │
+│    ║ '                                                                           ║                          │
+│    ╚─────────────────────────────────────────────────────────────────────────────╝                          │
+│                                                                                                               │
+│    Write files:                                                                                              │
+│    ├─ taiji_simple_config.json           (Taiji submission config)                                        │
+│    ├─ taiji_simple_config.redacted.json  (secrets masked)                                                 │
+│    └─ taiji_submit_manifest.json         (metadata)                                                        │
+│                                                                                                               │
+│    Returns: TaijiSubmitSpec with start_cmd embedded in config                                              │
+│                                                                                                               │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                            ↓
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 3: TAIJI SUBMISSION & MONITORING                                                                        │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                                 │
+│ A) SUBMIT TO TAIJI                                                                                            │
+│    ──────────────────                                                                                         │
+│    TaijiExecutionAgent.submit(submit_spec, dry_run=False)                                                   │
+│                                                                                                               │
+│    Execute: taiji_client start -scfg /path/to/taiji_simple_config.json                                     │
+│            ↓                                                                                                 │
+│    Taiji Receives Request                                                                                    │
+│            ↓                                                                                                 │
+│    Parse output for taiji_job_id (instance ID)                                                             │
+│            ↓                                                                                                 │
+│    Returns: TaijiSubmissionRecord {taiji_job_id, returncode, stdout, stderr}                               │
+│                                                                                                               │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────────────   │
+│                                                                                                               │
+│ B) TAIJI CONTAINER STARTUP (Remote Execution)                                                              │
+│    ──────────────────────────                                                                              │
+│    Taiji Container Pod:                                                                                     │
+│    ├─ Image: mirrors.tencent.com/davedwhuang/boltzgen:cu118                                               │
+│    ├─ GPU: V100                                                                                             │
+│    ├─ Exec: bash -lc <start_cmd from submit_spec>                                                        │
+│    │                                                                                                        │
+│    │   [Inside container]                                                                                 │
+│    │   1. Mount /aceph/daweihuang via Ceph (CEPH_SECRET)                                                 │
+│    │   2. Set WORKSPACE=/aceph/.../taiji_project_package                                                 │
+│    │   3. cd $WORKSPACE                                                                                   │
+│    │   4. bash scripts/run_boltzgen_full.sh                                                              │
+│    │      └─ This script runs BoltzGen with selected steps                                              │
+│    │         └─ Uses relative paths: configs/, outputs/, logs/, inputs/                                 │
+│    │         └─ All I/O in package directory (reproducible)                                             │
+│    │                                                                                                     │
+│    │   [BoltzGen Execution - example with "local" analysis mode]                                       │
+│    │   $ boltzgen run configs/boltzgen_design_spec.yaml \                                              │
+│    │       --output outputs/boltzgen_output \                                                          │
+│    │       --steps design inverse_folding folding design_folding  # NO analysis/filtering             │
+│    │       --num_designs 4 --budget 2 ...                                                             │
+│    │                                                                                                     │
+│    │   Output directories created:                                                                    │
+│    │   ├─ outputs/boltzgen_output/                                                                    │
+│    │   │  ├─ intermediate_designs/          (generated binder sequences)                             │
+│    │   │  ├─ intermediate_designs_inverse_folded/  (inverse folded sequences)                        │
+│    │   │  ├─ steps.yaml                     (pipeline metadata)                                      │
+│    │   │  └─ *.log files                                                                             │
+│    │   └─ logs/boltzgen_full.log                                                                   │
+│    │                                                                                                 │
+│    │   [Task Completes]                                                                            │
+│    │   GPU generation done, results on Ceph                                                       │
+│    │   Taiji GPU resources freed immediately                                                      │
+│    │                                                                                               │
+│    └─ Return exit code                                                                            │
+│                                                                                                    │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────   │
+│                                                                                                     │
+│ C) MONITOR REMOTE EXECUTION                                                                       │
+│    ────────────────────────                                                                       │
+│    RunMonitorAgent.check_once(task_flag, taiji_job_id, expected_outputs)                        │
+│                                                                                                     │
+│    Check remote paths (run_spec.output_dir now points to /aceph/...):                           │
+│    ├─ Expected outputs:                                                                          │
+│    │  ├─ /aceph/.../outputs/boltzgen_output/steps.yaml         ← Required                      │
+│    │  ├─ /aceph/.../outputs/boltzgen_output/intermediate_designs/  ← Expected                  │
+│    │  ├─ /aceph/.../outputs/boltzgen_output/intermediate_designs_inverse_folded/  ← Expected  │
+│    │  └─ /aceph/.../logs/boltzgen_full.log                     ← Log file                     │
+│    │                                                                                             │
+│    └─ Returns: Monitor snapshot {state, progress, found_files, missing_files}                   │
+│                                                                                                   │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                            ↓
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 4: ANALYSIS & RESULTS (Conditional)                                                             │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                         │
+│ IF analysis_location="local" (default):                                                               │
+│ ────────────────────────────────────                                                                  │
+│                                                                                                         │
+│ After Taiji GPU job completes, RUN LOCAL ANALYSIS                                                    │
+│ ─────────────────────────────────────────────────                                                    │
+│                                                                                                         │
+│ bash run_boltzgen_analysis_local.sh                                                                  │
+│                                                                                                         │
+│ [Inside local workstation]                                                                           │
+│ $ boltzgen run configs/boltzgen_design_spec.yaml \                                                  │
+│     --output outputs/boltzgen_output \                                                              │
+│     --reuse  # Reuse GPU generation outputs from Ceph                                               │
+│     --steps analysis filtering  # ONLY analysis, not generation                                     │
+│     --num_designs 4 --budget 2 ...                                                                  │
+│                                                                                                       │
+│ Output:                                                                                              │
+│ ├─ /aceph/.../outputs/boltzgen_output/final_ranked_designs/  (ranked candidates)                  │
+│ ├─ /aceph/.../outputs/boltzgen_output/final_metrics.csv       (metrics)                            │
+│ └─ /aceph/.../logs/boltzgen_analysis_local.log                (log)                                │
+│                                                                                                       │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────  │
+│                                                                                                       │
+│ IF analysis_location="taiji":                                                                        │
+│ ──────────────────────────────                                                                       │
+│                                                                                                       │
+│ Taiji GPU job runs FULL pipeline:                                                                   │
+│ └─ --steps design inverse_folding folding design_folding analysis filtering                        │
+│                                                                                                       │
+│ Output (on Ceph):                                                                                   │
+│ └─ /aceph/.../outputs/boltzgen_output/final_ranked_designs/  (already done)                       │
+│                                                                                                       │
+└────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                            ↓
+┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 5: RESULT INGESTION & EVALUATION                                                             │
+├────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                     │
+│ ResultIngestionAgent.ingest_boltzgen_output(run_spec.output_dir, log_file)                       │
+│ ├─ Read from run_spec.output_dir = /aceph/.../outputs/boltzgen_output/                          │
+│ ├─ Parse steps.yaml metadata                                                                     │
+│ ├─ Collect design candidates from final_ranked_designs/                                          │
+│ ├─ Read metrics CSVs                                                                              │
+│ └─ Returns: Manifest {candidates, metrics, steps}                                                │
+│                                                                                                     │
+│ EvaluationAgent.evaluate_candidates(candidates)                                                   │
+│ ├─ Score each candidate against criteria                                                         │
+│ ├─ Rank by performance                                                                            │
+│ └─ Return: Summary {scores, rankings, observations}                                              │
+│                                                                                                     │
+│ ActiveLearningPolicyAgent.propose_next_boltzgen_params(summary, current_params, round_id)      │
+│ ├─ Analyze evaluation results                                                                    │
+│ ├─ Propose parameter adjustments for next round                                                 │
+│ └─ Return: Proposal {new_params, rationale, confidence}                                         │
+│                                                                                                     │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────── │
+│                                                                                                   │
+│ Loop back to PHASE 1 with new parameters for next round                                         │
+│                                                                                                   │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                         KEY DESIGN PATTERNS                                                   ║
+╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                                                ║
+║ 1. PROJECT PACKAGE PATTERN                                                                                   ║
+║    All artifacts (inputs, configs, scripts, outputs, logs) packaged together in one directory.              ║
+║    Benefits: Reproducibility, portability, self-contained submission                                        ║
+║                                                                                                                ║
+║ 2. PATH TRANSFORMATION PATTERN                                                                              ║
+║    Spec paths transform: Local ──sync──> Remote ──configure──> Taiji ──execute──> Results                 ║
+║    All relative paths work identically at every stage (configs/, outputs/, scripts/ relative to package)   ║
+║                                                                                                                ║
+║ 3. SPLIT ANALYSIS PATTERN (Default)                                                                         ║
+║    GPU generation on Taiji (expensive, accelerated)                                                         ║
+║    Analysis filtering on local workstation (cheap, flexible)                                                │
+║    Benefits: Fast GPU turnaround, local iteration, resource efficiency                                      ║
+║                                                                                                                ║
+║ 4. SPEC MATERIALIZATION PATTERN                                                                            ║
+║    Every stage writes JSON/YAML files for inspection:                                                       ║
+║    ├─ 01_design_parameter_plan.yaml        (parameters)                                                    ║
+║    ├─ 02_taiji_simple_config.json          (Taiji submission)                                            ║
+║    ├─ 03_run_monitor_snapshot.json         (execution status)                                             ║
+║    ├─ 04_result_ingestion.json             (collected outputs)                                            ║
+║    ├─ 06_evaluation_summary.json           (scores & analysis)                                            ║
+║    └─ 07_next_round_proposal.json          (new parameters)                                               ║
+║    Benefits: Full auditability, debugging, reproducibility                                                 ║
+║                                                                                                                ║
+║ 5. CEPH MOUNTING PATTERN                                                                                    ║
+║    Taiji container receives CEPH_SECRET via env var                                                        ║
+║    Startup script mounts /aceph/daweihuang if not already mounted                                          ║
+║    BoltzGen accesses all files via Ceph (package, checkpoints, cache)                                      ║
+║    Benefits: Centralized data, no network latency, automatic retry logic                                   ║
+║                                                                                                                ║
+║ 6. REMOTE PROJECT DIR PATTERN                                                                               ║
+║    Taiji config contains "remote_project_dir" = Ceph package path                                          ║
+║    Startup command sets WORKSPACE = remote_project_dir                                                      ║
+║    Script execution happens from package root (reproducible relative paths)                                 ║
+║    Benefits: Clear semantic separation, portable configuration                                              ║
+║                                                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                       CRITICAL FUNCTIONS SUMMARY                                             ║
+╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                                                ║
+║ sync_package_to_remote_run_dir(package_dir, task_flag)                                                       ║
+║ ├─ Purpose: Copy local package to Ceph                                                                       ║
+║ ├─ Location: scripts/run_boltzgen_complete_path_test.py:152-159                                             ║
+║ └─ Key: Destructive replace, preserves symlinks                                                              ║
+║                                                                                                                ║
+║ point_run_spec_to_package(run_spec, remote_package_dir)                                                     ║
+║ ├─ Purpose: Update all paths in run_spec to point to remote location                                        ║
+║ ├─ Location: scripts/run_boltzgen_complete_path_test.py:162-187                                             ║
+║ └─ Key: Mutates run_spec in-place, updates expected_outputs                                                ║
+║                                                                                                                ║
+║ TaijiExecutionAgent.create_boltzgen_taiji_spec()                                                             ║
+║ ├─ Purpose: Generate Taiji config JSON with embedded startup command                                        ║
+║ ├─ Location: binderloop/agents/taiji_execution_agent.py:59-149                                          ║
+║ ├─ Extracts: remote_project_dir from taiji_options                                                          ║
+║ └─ Builds: start_cmd using _build_start_cmd(remote_project_dir=...)                                         ║
+║                                                                                                                ║
+║ TaijiExecutionAgent._build_start_cmd(remote_project_dir)                                                     ║
+║ ├─ Purpose: Generate bash script for Taiji container startup                                                ║
+║ ├─ Location: binderloop/agents/taiji_execution_agent.py:221-249                                         ║
+║ ├─ Includes: Ceph mount logic, WORKSPACE setup, script execution                                           ║
+║ └─ Key: remote_project_dir determines execution location                                                    ║
+║                                                                                                                ║
+║ DesignSpecAgent._effective_steps(params)                                                                     ║
+║ ├─ Purpose: Determine which BoltzGen steps to run                                                            ║
+║ ├─ Location: binderloop/agents/design_spec_agent.py:252-262                                             ║
+║ ├─ Decision: analysis_location="local" → GPU steps only; "taiji" → full pipeline                           ║
+║ └─ Output: ["design", "inverse_folding", "folding", "design_folding" [, "analysis", "filtering"]]         ║
+║                                                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝

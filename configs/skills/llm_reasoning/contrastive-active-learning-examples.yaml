@@ -1,0 +1,52 @@
+id: contrastive-active-learning-examples
+type: llm_reasoning
+description: Compare strict positives, boundary near misses, and other negatives.
+applies_to:
+  - BinderQualityAnalysisAgent
+  - HypothesisAgent
+  - DiagnosticCoachAgent
+  - InputConfigurationAgent
+trigger:
+  paths_truthy:
+    - active_learning_examples.current_round.strict_positive_examples
+    - active_learning_examples.current_round.near_miss_examples
+    - active_learning_examples.current_round.other_negative_examples
+required_inputs:
+  - active_learning_examples.current_round
+  - active_learning_examples.prior_rounds
+  - evaluation.metric_facts
+guidance:
+  - Treat current_round.strict_positive_examples as designs passing iPTM>=0.50, PAE<=10A, pTM>=0.70, and RMSD<=2.5A.
+  - Treat current_round.near_miss_examples as boundary evidence only; never relabel or count them as success.
+  - Treat current_round.other_negative_examples as the remaining failures.
+  - Explain what separates all three classes using supplied metrics and structure summaries only.
+  - Use prior_rounds as accumulated evidence; explicitly distinguish it from current-round outcomes.
+runtime_logic:
+  role: prompt_guidance_only
+  contrastive_labels:
+    strict_positive: iPTM>=0.50 plus PAE<=10A, pTM>=0.70, RMSD<=2.5A
+    near_miss: guarded top-k continuous-confidence boundary examples
+    other_negative: remaining candidates that fail the strict gate
+output_schema:
+  expected_evidence_fields:
+    - strict_positive_advantage
+    - near_miss_boundary_gap
+    - other_negative_gap
+    - next_round_signal
+allowed_config_keys:
+  - diffusion_batch_size
+  - binder_lengths
+  - auxiliary_hotspots
+  - auxiliary_hotspots
+  - alpha
+expected_signals:
+  improve:
+    - count_strict_positive_examples
+    - mean_design_to_target_iptm
+    - best_core_objective
+  watch:
+    - near_miss_count
+    - other_negative_count
+    - min_design_to_target_pae
+    - designfolding-filter_rmsd
+risk: Overfitting to a few high-iPTM examples can reduce topology diversity; keep accumulated prior evidence separate from the current round.

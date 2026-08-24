@@ -1,0 +1,135 @@
+schema_version: 1
+owner:
+  task_hard_constraints:
+    task_name: PD-L1_len50_120_iptm035
+    target_structure_path: examples/bg_example/PD-L1.cif
+    boltzgen_input_path: ../examples/bg_example/PD-L1_len50.yaml
+    target_chain_id: A
+    binder_length_range:
+    - 50
+    - 120
+    binder_length_step: 5
+    notes: Structured harness input window using the PD-L1 BoltzGen example.
+    num_designs: 160
+  boltzgen_design_native:
+    protocol: protein-anything
+    auto_binder_length: true
+    epitope_crop_mode: disabled
+    diffusion_batch_size: 1
+    steps:
+    - design
+    - inverse_folding
+    - folding
+    - design_folding
+    - analysis
+    - filtering
+    silence: false
+    log_heartbeat_seconds: 360
+  boltzgen_inverse_fold_and_validation:
+    inverse_fold_num_sequences: 2
+    inverse_fold_avoid: ''
+  boltzgen_filtering_ranking:
+    alpha: 0.001
+    filter_biased: 'true'
+    refolding_rmsd_threshold: 2.5
+    config_overrides:
+    - - filtering
+      - filter_bindingsite=true
+  sampler_bounds:
+    noise_scale:
+      min: 0.6
+      max: 0.9
+    step_scale:
+      min: 0.6
+      max: 1.0
+    alpha:
+      min: 0.001
+      max: 0.05
+  filtering_budget:
+    budget: 99999
+    run_filtering: true
+    keep_unfiltered_for_failure_analysis: true
+    additional_filters:
+    - iptm>0.35
+  harness_search_space:
+    model_order:
+    - boltzgen
+  active_learning_and_rollback:
+    max_rounds: 10
+    top_k: 6
+    exploration_ratio: 0.35
+    branch_width: 4
+    branch_budget_policy: equal
+    min_designs_per_branch: 1
+    enable_strategy_skills: true
+    enable_exploitation_arms: true
+    enable_backtracking: true
+    regression_tolerance: 0.25
+    rollback_patience: 2
+  runtime_resources:
+    runtime:
+      project_root: .
+      boltzgen_root: ../boltzgen
+      output_dir: outputs/PD-L1_len50_120
+      extend_memory: true
+      python_bin: python
+    resource:
+      backend: taiji
+      host_num: 2
+      taiji_multi_host_mode: native
+      host_gpu_num: 8
+      gpu_name: V100
+      max_parallel_jobs: 8
+      template_json: examples/bg_example/benchmark_v100.cq.json
+      timeout_seconds: 1200
+  llm_context_learning:
+    memory:
+      enabled: false
+      index_items: false
+      retrieval: false
+      semantic_rerank: false
+      compression: false
+      apply_prompt_budget: false
+      retrieval_candidate_limit: 24
+      retrieval_top_k: 8
+      mmr_lambda: 0.7
+      max_active_items: 24
+      compression_batch_size: 6
+      max_summary_chars: 1200
+      prompt_max_bytes: 625706
+    quality_collaboration:
+      enabled: true
+      performance_drop_tolerance: 0.0
+      recovery_tolerance: 1.0e-06
+      request_timeout_seconds: 105
+      failure_cooldown_seconds: 20
+      specialist_max_tokens: 8000
+      manager_max_tokens: 8000
+      max_completion_tokens: 65536
+      visible_json_budget_tokens: 8000
+      reasoning_budget_tokens: 0
+      max_api_calls: 6
+  harness_template_policy:
+    enabled: true
+    gate: interchain_pae
+    interchain_pae_max: 10.0
+    top_k: 3
+  parameter_decision:
+    alpha_candidates:
+    - 0.001
+    - 0.003
+    - 0.009
+    - 0.027
+    - 0.05
+    noise_scale_candidates:
+    - 0.6
+    - 0.7
+    - 0.8
+    - 0.9
+    step_scale_candidates:
+    - 0.6
+    - 0.8
+    - 1.0
+    top_probability_threshold: 0.65
+    margin_threshold: 0.2
+    max_normalized_entropy: 0.75

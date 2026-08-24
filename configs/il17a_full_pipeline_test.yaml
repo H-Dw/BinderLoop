@@ -1,0 +1,91 @@
+schema_version: 1
+owner:
+  task_hard_constraints:
+    task_name: il17a_full_pipeline_test
+    target_structure_path: examples/bg_example/IL-17A.cif
+    target_chain_id: A
+    hotspots:
+    - A:67
+    - A:89
+    - B:49
+    binder_length_range:
+    - 50
+    - 140
+    binder_length_step: 20
+    target_include:
+    - chain:
+        id: A
+        res_index: 1..104
+    - chain:
+        id: B
+        res_index: 1..109
+    target_binding_types:
+    - chain:
+        id: A
+        binding: 67,89
+    - chain:
+        id: B
+        binding: '49'
+    structure_groups: all
+    notes: IL-17A homodimer; hotspots at receptor-binding interface
+    num_designs: 10
+  boltzgen_design_native:
+    protocol: protein-anything
+    diffusion_batch_size: 1
+    steps:
+    - design
+    - inverse_folding
+    - folding
+    - design_folding
+    - analysis
+    - filtering
+    binder_chain: D
+  boltzgen_inverse_fold_and_validation:
+    inverse_fold_num_sequences: 1
+    inverse_fold_avoid: ''
+  boltzgen_filtering_ranking:
+    alpha: 0.001
+    filter_biased: 'true'
+    refolding_rmsd_threshold: 2.5
+    config_overrides:
+    - - filtering
+      - filter_bindingsite=true
+  sampler_bounds:
+    noise_scale:
+      min: 0.6
+      max: 0.9
+    step_scale:
+      min: 0.6
+      max: 1.0
+    alpha:
+      min: 0.001
+      max: 0.05
+  filtering_budget:
+    budget: 5
+    run_filtering: true
+    keep_unfiltered_for_failure_analysis: true
+    additional_filters:
+    - design_ptm>0.5
+    - iptm>0.4
+  harness_search_space:
+    model_order:
+    - boltzgen
+  active_learning_and_rollback:
+    max_rounds: 3
+    max_retries: 2
+    strategy: successive_halving
+    top_k: 4
+    exploration_ratio: 0.35
+  runtime_resources:
+    runtime:
+      project_root: ..
+      boltzgen_root: ../boltzgen
+      odesign_root: ../ODesign
+      output_dir: outputs/il17a_full_pipeline_test
+      python_bin: python
+    resource:
+      backend: local
+      host_num: 1
+      host_gpu_num: 1
+      max_parallel_jobs: 1
+  harness_template_policy: {}

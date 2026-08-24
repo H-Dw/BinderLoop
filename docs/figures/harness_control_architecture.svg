@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1776" height="887" viewBox="0 0 1776 887" role="img" aria-labelledby="title desc">
+  <title id="title">Harness Control architecture</title>
+  <desc id="desc">Editable vector architecture diagram showing controlled multi-agent reasoning, evidence-conditioned strategy selection, closed-loop evidence and learning, design-job scheduling, and deterministic evaluation.</desc>
+  <defs>
+    <style><![CDATA[
+      .bg { fill: #FBFCFD; }
+      .outer { fill: none; stroke: #2F3A46; stroke-width: 2; }
+      .agent-region { fill: #F2F5F8; stroke: #617A96; stroke-width: 1.6; }
+      .strategy-region { fill: #EDF4F2; stroke: #4F7975; stroke-width: 1.6; }
+      .learning-region { fill: #F2F5F0; stroke: #738A72; stroke-width: 1.6; }
+      .neutral-box { fill: #FBFCFD; stroke: #66727E; stroke-width: 1.4; }
+      .agent-box { fill: #FBFCFD; stroke: #617A96; stroke-width: 1.25; }
+      .strategy-box { fill: #FBFCFD; stroke: #4F7975; stroke-width: 1.25; }
+      .learning-box { fill: #FBFCFD; stroke: #738A72; stroke-width: 1.25; }
+      .skill-box { fill: #FBFCFD; stroke: #77758C; stroke-width: 1.35; stroke-dasharray: 8 6; }
+      .text { font-family: "Source Sans 3", Inter, Arial, Helvetica, sans-serif; fill: #26323B; }
+      .title { font-size: 28px; font-weight: 600; }
+      .section { font-size: 22px; font-weight: 600; }
+      .module { font-size: 18px; font-weight: 600; }
+      .card { font-size: 15px; font-weight: 500; }
+      .small { font-size: 13px; font-weight: 400; }
+      .label { font-size: 14px; font-weight: 500; }
+      .agent-text { fill: #3F628B; }
+      .strategy-text { fill: #315F5B; }
+      .learning-text { fill: #526E51; }
+      .violet-text { fill: #66678D; }
+      .ochre-text { fill: #8D6C51; }
+      .icon { fill: none; stroke: #2F3A46; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+      .flow { fill: none; stroke: #2F3A46; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-graphite); }
+      .advisory { fill: none; stroke: #4D78A8; stroke-width: 1.7; stroke-dasharray: 8 6; stroke-linecap: round; marker-end: url(#arrow-blue); }
+      .history { fill: none; stroke: #567857; stroke-width: 1.8; stroke-linecap: round; marker-end: url(#arrow-sage); }
+      .artifact { fill: none; stroke: #A17F65; stroke-width: 1.7; stroke-dasharray: 8 6; stroke-linecap: round; stroke-linejoin: round; marker-start: url(#arrow-ochre); marker-end: url(#arrow-ochre); }
+      .experience { fill: none; stroke: #77758C; stroke-width: 1.7; stroke-linecap: round; marker-end: url(#arrow-violet); }
+      .learned { fill: none; stroke: #77758C; stroke-width: 1.6; stroke-dasharray: 8 6; stroke-linecap: round; marker-end: url(#arrow-violet); }
+    ]]></style>
+    <marker id="arrow-graphite" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#2F3A46"/></marker>
+    <marker id="arrow-blue" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#4D78A8"/></marker>
+    <marker id="arrow-sage" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#567857"/></marker>
+    <marker id="arrow-violet" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#77758C"/></marker>
+    <marker id="arrow-ochre" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#A17F65"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1776" height="887"/>
+
+  <!-- Harness boundary and title -->
+  <rect class="outer" x="48" y="16" width="1418" height="845" rx="12"/>
+  <text class="text title" x="757" y="57" text-anchor="middle">Harness Control</text>
+
+  <!-- Orchestration and external inputs -->
+  <rect class="neutral-box" x="403" y="77" width="812" height="83" rx="9"/>
+  <text class="text section" x="809" y="113" text-anchor="middle">Orchestrator &amp; Governance</text>
+  <text class="text card" x="809" y="142" text-anchor="middle">state  ·  constraints  ·  budget  ·  agent control  ·  policy gate</text>
+
+  <rect class="neutral-box" x="1522" y="77" width="164" height="87" rx="8"/>
+  <text class="text module" x="1604" y="112" text-anchor="middle">Task</text>
+  <text class="text module" x="1604" y="139" text-anchor="middle">Contract</text>
+  <path class="flow" d="M1522 119.5 H1215"/>
+
+  <!-- Orchestrator branches -->
+  <path class="flow" d="M464 160 V201"/>
+  <path class="flow" d="M1100 160 V201"/>
+
+  <!-- Controlled multi-agent reasoning -->
+  <rect class="agent-region" x="72" y="201" width="652" height="391" rx="10"/>
+  <text class="text section agent-text" x="398" y="234" text-anchor="middle">Controlled Multi-Agent Reasoning</text>
+
+  <rect class="agent-box" x="94" y="248" width="201" height="124" rx="9"/>
+  <text class="text card" x="194.5" y="280" text-anchor="middle">Success Evidence</text>
+  <text class="text small" x="194.5" y="303" text-anchor="middle">strict positives + near misses</text>
+  <circle class="icon" cx="194.5" cy="339" r="20"/>
+  <path class="icon" d="M185 339 l7 7 l13 -15"/>
+
+  <rect class="agent-box" x="316" y="248" width="186" height="124" rx="9"/>
+  <text class="text card" x="409" y="280" text-anchor="middle">Failure Evidence</text>
+  <text class="text small" x="409" y="303" text-anchor="middle">other negatives</text>
+  <circle class="icon" cx="409" cy="339" r="20"/>
+  <path class="icon" d="M399 339 H419"/>
+
+  <rect class="agent-box" x="522" y="248" width="180" height="124" rx="9"/>
+  <text class="text card" x="612" y="280" text-anchor="middle">Trajectory Review</text>
+  <text class="text small" x="612" y="303" text-anchor="middle">history ↔ current</text>
+  <path class="icon" d="M596 333 A18 18 0 0 1 626 325"/>
+  <path class="icon" d="M624 321 l3 8 l-8 -1"/>
+  <path class="icon" d="M628 345 A18 18 0 0 1 597 351"/>
+  <path class="icon" d="M599 355 l-3 -8 l8 1"/>
+
+  <path class="flow" d="M194.5 372 V404"/>
+  <path class="flow" d="M409 372 V404"/>
+  <path class="flow" d="M612 372 V404"/>
+
+  <rect class="agent-box" x="94" y="404" width="604" height="68" rx="8"/>
+  <g transform="translate(123 417)">
+    <path class="icon" d="M30 0 V34 M16 6 H44 M16 6 L4 27 M16 6 L28 27 M44 6 L32 27 M44 6 L56 27"/>
+    <path class="icon" d="M0 27 H8 A8 8 0 0 1 0 0 Z" transform="translate(0 0)" opacity="0"/>
+    <path class="icon" d="M0 27 H8 M52 27 H60 M4 27 A8 8 0 0 0 20 27 M40 27 A8 8 0 0 0 56 27"/>
+    <circle class="icon" cx="30" cy="36" r="12"/>
+    <path class="icon" d="M24 36 l4 4 l8 -9"/>
+  </g>
+  <text class="text module" x="416" y="445" text-anchor="middle">Evidence Validation &amp; Physics Arbitration</text>
+
+  <path class="flow" d="M386 472 V502"/>
+  <rect class="agent-box" x="94" y="502" width="539" height="68" rx="8"/>
+  <text class="text module agent-text" x="363.5" y="543" text-anchor="middle">Structured Strategy Intents</text>
+
+  <!-- Evidence-conditioned strategy selection -->
+  <rect class="strategy-region" x="754" y="201" width="672" height="391" rx="10"/>
+  <text class="text section strategy-text" x="1090" y="234" text-anchor="middle">Evidence-Conditioned Strategy Selection</text>
+
+  <rect class="strategy-box" x="776" y="251" width="628" height="182" rx="9"/>
+  <text class="text module strategy-text" x="1090" y="279" text-anchor="middle">Strategy Portfolio</text>
+  <text class="text small" x="1090" y="303" text-anchor="middle">typed executable arms  ·  examples</text>
+
+  <rect class="strategy-box" x="790" y="313" width="119" height="107" rx="8"/>
+  <text class="text small" x="849.5" y="338" text-anchor="middle">Baseline hold</text>
+  <path class="icon" d="M849 356 l24 11 v18 c0 14 -10 23 -24 29 c-14 -6 -24 -15 -24 -29 v-18 z"/>
+  <circle class="icon" cx="849" cy="373" r="4"/>
+  <path class="icon" d="M849 377 v23 M841 385 h16 M842 398 q7 10 14 0"/>
+
+  <rect class="strategy-box" x="933" y="313" width="130" height="107" rx="8"/>
+  <text class="text small" x="998" y="338" text-anchor="middle">Site condition</text>
+  <circle class="icon" cx="998" cy="382" r="25"/>
+  <circle class="icon" cx="998" cy="382" r="9"/>
+  <path class="icon" d="M998 349 V373 M998 391 V415 M965 382 H989 M1007 382 H1031"/>
+
+  <rect class="strategy-box" x="1085" y="313" width="147" height="107" rx="8"/>
+  <text class="text small" x="1158.5" y="338" text-anchor="middle">Sampling</text>
+  <text class="text small" x="1158.5" y="358" text-anchor="middle">exploration</text>
+  <path class="icon" d="M1122 399 L1145 382 L1167 392 L1193 371"/>
+  <circle class="icon" cx="1122" cy="399" r="5"/>
+  <circle class="icon" cx="1145" cy="382" r="5"/>
+  <circle class="icon" cx="1167" cy="392" r="5"/>
+  <circle class="icon" cx="1193" cy="371" r="5"/>
+
+  <rect class="strategy-box" x="1257" y="313" width="133" height="107" rx="8"/>
+  <text class="text small" x="1323.5" y="338" text-anchor="middle">Template exploit</text>
+  <path class="icon" d="M1292 365 h17 v-13 h24 v25 h13 v24 h-25 v-13 h-12 v13 h-17 v-15 a9 9 0 1 1 0 -18 z"/>
+
+  <path class="flow" d="M1074 433 V462 H840 V488"/>
+
+  <rect class="strategy-box" x="782" y="488" width="119" height="83" rx="8"/>
+  <text class="text module strategy-text" x="841.5" y="526" text-anchor="middle">Strategy</text>
+  <text class="text module strategy-text" x="841.5" y="551" text-anchor="middle">Selector</text>
+
+  <rect class="strategy-box" x="970" y="488" width="206" height="90" rx="8"/>
+  <text class="text module" x="1073" y="522" text-anchor="middle">Ranked Arm Slate</text>
+  <g class="icon" transform="translate(1023 531)">
+    <rect x="13" y="0" width="76" height="17" rx="2"/>
+    <rect x="7" y="7" width="76" height="17" rx="2"/>
+    <rect x="0" y="14" width="76" height="17" rx="2"/>
+  </g>
+  <text class="text small" x="1073" y="574" text-anchor="middle">2–4 arms</text>
+
+  <rect class="strategy-box" x="1252" y="487" width="131" height="86" rx="8"/>
+  <text class="text module" x="1317.5" y="525" text-anchor="middle">Policy</text>
+  <text class="text module" x="1317.5" y="551" text-anchor="middle">Gate</text>
+
+  <path class="advisory" d="M633 536 H782"/>
+  <path class="flow" d="M901 529.5 H970"/>
+  <path class="flow" d="M1176 530 H1252"/>
+
+  <!-- Scheduling and candidate outputs -->
+  <rect class="neutral-box" x="1522" y="490" width="164" height="86" rx="8"/>
+  <text class="text module" x="1604" y="526" text-anchor="middle">Design-Job</text>
+  <text class="text module" x="1604" y="552" text-anchor="middle">Scheduling</text>
+  <path class="flow" d="M1383 530 H1522"/>
+  <text class="text label" x="1472" y="511" text-anchor="middle">DesignJob</text>
+
+  <rect class="neutral-box" x="1522" y="702" width="164" height="92" rx="8"/>
+  <text class="text module" x="1604" y="742" text-anchor="middle">Validated</text>
+  <text class="text module" x="1604" y="769" text-anchor="middle">Candidates</text>
+
+  <!-- Closed-loop evidence and learning -->
+  <rect class="learning-region" x="72" y="656" width="1354" height="174" rx="10"/>
+  <text class="text section learning-text" x="119" y="688">Closed-loop Evidence &amp; Learning</text>
+
+  <rect class="skill-box" x="121" y="702" width="322" height="107" rx="8"/>
+  <text class="text module" x="282" y="734" text-anchor="middle">Governed Skill Learning</text>
+  <text class="text small" x="282" y="759" text-anchor="middle">induce  ·  validate  ·  activate / retire</text>
+  <rect x="236" y="775" width="95" height="28" rx="7" fill="#FBFCFD" stroke="#77758C" stroke-width="1.1"/>
+  <text class="text small violet-text" x="283.5" y="794" text-anchor="middle">optional</text>
+
+  <rect class="learning-box" x="651" y="697" width="347" height="106" rx="8"/>
+  <text class="text module" x="824.5" y="743" text-anchor="middle">Experiment Memory &amp; Ledger</text>
+  <text class="text small" x="824.5" y="773" text-anchor="middle">rounds  ·  outcomes  ·  provenance</text>
+
+  <rect class="learning-box" x="1137" y="697" width="249" height="106" rx="8"/>
+  <text class="text module" x="1261.5" y="755" text-anchor="middle">Deterministic Evaluation</text>
+
+  <path class="history" d="M840 697 V571"/>
+  <text class="text label learning-text" x="854" y="638">history evidence</text>
+
+  <path class="experience" d="M651 746 H443"/>
+  <text class="text label violet-text" x="548" y="774" text-anchor="middle">experience</text>
+
+  <path class="flow" d="M1137 746 H998"/>
+  <text class="text label" x="1068" y="774" text-anchor="middle">outcomes</text>
+
+  <path class="learned" d="M292 656 V592"/>
+  <text class="text label violet-text" x="178" y="631">learned rules</text>
+
+  <path class="artifact" d="M1604 576 V622 H1262 V697"/>
+  <text class="text label ochre-text" x="1328" y="648" text-anchor="middle">artifacts</text>
+
+  <path class="flow" d="M1386 746 H1522"/>
+</svg>

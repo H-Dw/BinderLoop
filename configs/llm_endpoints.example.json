@@ -1,0 +1,65 @@
+{
+  "enabled": false,
+  "default_model": "gpt_default",
+  "secrets": {
+    "CEPH_SECRET": {
+      "env": "CEPH_SECRET"
+    },
+    "BINDERLOOP_OPENAI_KEY": {
+      "env": "BINDERLOOP_OPENAI_KEY"
+    },
+    "BINDERLOOP_CLAUDE_KEY": {
+      "env": "BINDERLOOP_CLAUDE_KEY"
+    },
+    "OPENROUTER_API_KEY": {
+      "env": "OPENROUTER_API_KEY"
+    }
+  },
+  "endpoints": {
+    "openrouter_deepseek": {
+      "provider": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "deepseek/deepseek-v4-pro",
+      "capabilities": {"logprobs": "auto", "top_logprobs_max": 20},
+      "api_key_env": "OPENROUTER_API_KEY",
+      "timeout_seconds": 120,
+      "max_retries": 3,
+      "retry_backoff_seconds": 2.0,
+      "thinking": "enabled",
+      "default_headers": {
+        "HTTP-Referer": "https://local.binderloop",
+        "X-Title": "BinderLoop"
+      },
+      "extra_body": {
+        "reasoning": {
+          "enabled": true
+        }
+      }
+    },
+    "gpt_default": {
+      "provider": "openai-compatible",
+      "base_url": "https://api.example.com/v1",
+      "model": "gpt-4o-mini",
+      "capabilities": {"logprobs": "auto", "top_logprobs_max": 20},
+      "api_key_env": "BINDERLOOP_OPENAI_KEY",
+      "timeout_seconds": 60,
+      "max_retries": 3,
+      "retry_backoff_seconds": 2.0,
+      "thinking": "medium",
+      "extra_body": {}
+    },
+    "claude_default": {
+      "provider": "anthropic-compatible",
+      "base_url": "https://api.anthropic-compatible.example.com/v1",
+      "model": "claude-3-5-sonnet-latest",
+      "capabilities": {"logprobs": "disabled"},
+      "api_key_env": "BINDERLOOP_CLAUDE_KEY",
+      "timeout_seconds": 60,
+      "max_retries": 3,
+      "retry_backoff_seconds": 2.0,
+      "thinking": "enabled",
+      "thinking_budget_tokens": 2048,
+      "extra_body": {}
+    }
+  }
+}

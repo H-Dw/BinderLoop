@@ -1,0 +1,31 @@
+id: hotspot-round-feedback
+type: llm_reasoning
+description: Refine the previous hotspot patch from round success and contact evidence without citing known epitopes.
+applies_to:
+  - HotspotSelectionAgent
+trigger:
+  paths_truthy:
+    - round_evidence.previous_hotspots
+required_inputs:
+  - round_evidence.previous_hotspots
+  - round_evidence.success_count
+guidance:
+  - Keep the previous patch if hotspot coverage and success_count are improving.
+  - If hotspot_not_covered or hotspot_miss is frequent, shift toward residues that actually appear in contact_target_residues or engaged_residues.
+  - Change only a few residues per round; do not jump to a distant unrelated patch.
+  - Do not mention literature hotspots, protein names, or PDB IDs when explaining the update.
+runtime_logic:
+  role: prompt_guidance_only
+output_schema:
+  required_fields:
+    - hotspots
+    - changes_from_previous
+    - expected_signal_next_round
+allowed_config_keys: []
+expected_signals:
+  improve:
+    - success_count
+    - hotspot_contact
+  watch:
+    - design_to_target_iptm
+risk: Chasing a few noisy contacts can oscillate the epitope definition across rounds.

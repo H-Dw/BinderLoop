@@ -1,0 +1,21 @@
+id: strategy-conflict-trajectory-evidence
+type: llm_reasoning
+priority: 850
+description: Resolve parameter conflicts using exact cross-round strategy exposure and outcomes.
+applies_to:
+  - StrategyConflictResolutionAgent
+trigger:
+  paths_truthy:
+    - conflicts
+required_inputs:
+  - conflicts
+  - current_config
+  - recent_rounds
+guidance:
+  - Compare exposed parameter moves with following-round core objective, reward and rollback.
+  - Prefer historical best and replicated evidence over rule priority or recency.
+  - Treat multi-parameter rounds as confounded and avoid unsupported causal claims.
+runtime_logic:
+  role: conflict_resolver_contract
+  strict_required_inputs: true
+risk: Confounded trajectories can favor the wrong parameter move.

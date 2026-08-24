@@ -1,0 +1,44 @@
+id: quality-fragment-reuse-reasoning
+type: llm_reasoning
+description: Interpret high/low quality fragments without turning them directly into executable templates.
+applies_to:
+  - BinderQualityAnalysisAgent
+  - HypothesisAgent
+  - DiagnosticCoachAgent
+trigger:
+  paths_truthy:
+    - structural_analysis.summaries
+    - fragment_templates.library
+required_inputs:
+  - structural_analysis.summaries.high_quality_fragments
+  - structural_analysis.summaries.low_quality_fragments
+  - fragment_templates.library
+  - fragment_templates.recommended_config
+guidance:
+  - Treat fragment reuse as a hypothesis unless FragmentTemplateMiningAgent reports PAE-gated templates.
+  - Report reusable and avoidable modules separately.
+  - Never invent binder_template payloads in LLM output.
+runtime_logic:
+  role: prompt_guidance_only
+  template_authority: FragmentTemplateMiningAgent
+  notes:
+    - LLMs can explain why a fragment looks reusable or risky.
+    - Only FragmentTemplateMiningAgent may emit binder_template or binder_templates.
+output_schema:
+  high_quality_modules: list
+  low_quality_modules: list
+  next_round_guidance: list
+allowed_config_keys:
+  - diffusion_batch_size
+expected_signals:
+  improve:
+    - reliable_seed_fraction
+    - design_ptm
+    - designfolding-filter_rmsd
+  watch:
+    - template_conditioned_fraction
+risk: Over-exploiting local fragments can reduce topology diversity.
+
+role_metadata:
+  roles:
+    - positive

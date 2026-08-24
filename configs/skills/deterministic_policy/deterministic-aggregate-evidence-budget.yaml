@@ -1,0 +1,21 @@
+id: deterministic-aggregate-evidence-budget
+type: deterministic_policy
+priority: 980
+description: Preserve complete round metrics while constraining LLM evidence to representative high-value rows.
+applies_to:
+  - BinderQualityAnalysisAgent
+  - HypothesisAgent
+  - DiagnosticCoachAgent
+  - InputConfigurationAgent
+  - ActiveLearningPolicyAgent
+required_inputs:
+  - evaluation.metric_facts
+trigger:
+  always: true
+guidance:
+  - Treat aggregate metric facts and gate denominators computed from the complete metrics population as immutable; never infer totals from the compact representative rows.
+  - When the metrics population exceeds the 2000-row evidence budget, retain all rows in ingestion and use deterministic representatives covering top core rank, top iPTM, strict positives, near misses, dominant failure classes, and metric extrema.
+  - Explicitly report metrics_rows_observed, metrics_rows_over_limit, the evidence selection policy, and any unavailable metric fields; never describe skill-guided compaction as ingestion truncation.
+  - Structure evidence includes only native BoltzGen final refold structures and remains aggregate-only; do not join structures back to metric rows.
+runtime_logic:
+  strict_required_inputs: false

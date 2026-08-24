@@ -1,0 +1,24 @@
+id: self-improvement-evidence-grounding
+type: llm_reasoning
+priority: 850
+description: Ground self-improvement updates in executed strategies and immutable round outcomes.
+applies_to:
+  - SelfImprovementSkillAgent
+trigger:
+  always: true
+required_inputs:
+  - experience.outcome
+  - experience.evaluation
+  - experience.strategy_exposure
+guidance:
+  - Learn only from strategy fields that were actually exposed to the evaluated round.
+  - Exclude execution or infrastructure failures from scientific strategy learning.
+  - Use immutable metric facts, core objective, reward and rollback as outcome evidence.
+  - Treat simultaneous parameter changes as correlation, not controlled causation.
+  - Preserve evidence IDs and explicitly state uncertainty.
+runtime_logic:
+  role: updater_contract
+  strict_required_inputs: true
+output_schema:
+  operations: list
+risk: Noisy or confounded round outcomes can create false strategy lessons.

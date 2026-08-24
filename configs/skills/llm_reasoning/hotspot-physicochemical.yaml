@@ -1,0 +1,28 @@
+id: hotspot-physicochemical
+type: llm_reasoning
+description: Choose hotspot residues using hydrophobicity, charge, and aromatic character of exposed patches.
+applies_to:
+  - HotspotSelectionAgent
+trigger:
+  always: true
+required_inputs:
+  - residue_table.residues
+guidance:
+  - Favor exposed hydrophobic or aromatic residues as likely interface anchors.
+  - Include at most a minority of charged/polar residues when they sit on the same patch and can support complementarity.
+  - Use patch_hydrophobic, patch_charged, and patch_aromatic fields to keep the set chemically coherent.
+  - Never justify a residue because it is a known epitope; use only table physicochemical values.
+runtime_logic:
+  role: prompt_guidance_only
+output_schema:
+  required_fields:
+    - hotspots
+    - rationale
+allowed_config_keys: []
+expected_signals:
+  improve:
+    - hotspot_contact
+    - plip_hbonds_refolded
+  watch:
+    - design_ptm
+risk: An overly hydrophobic patch can produce sticky non-specific interfaces.

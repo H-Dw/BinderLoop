@@ -1,0 +1,21 @@
+id: strategy-conflict-controlled-experiment
+type: llm_reasoning
+priority: 700
+description: Prefer a budget-balanced controlled comparison when soft parameter conflicts remain unresolved.
+applies_to:
+  - StrategyConflictResolutionAgent
+trigger:
+  paths_truthy:
+    - conflicts
+required_inputs:
+  - conflicts
+  - branch_width
+  - max_binders_per_round
+guidance:
+  - Change one primary parameter family per comparison.
+  - Use equal budget and the same hard target constraints for both arms.
+  - Fall back to hold or historical best when branch budget is insufficient.
+runtime_logic:
+  role: conflict_resolver_contract
+  strict_required_inputs: true
+risk: Underpowered comparisons can create misleading credit assignment.

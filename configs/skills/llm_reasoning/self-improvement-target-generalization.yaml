@@ -1,0 +1,23 @@
+id: self-improvement-target-generalization
+type: llm_reasoning
+priority: 850
+description: Convert target-specific observations into transferable structural strategy language.
+applies_to:
+  - SelfImprovementSkillAgent
+trigger:
+  always: true
+required_inputs:
+  - experience.structure_phenotype
+  - experience.current_config
+guidance:
+  - Remove target names, structure paths, chain and residue identifiers, candidate IDs and template IDs.
+  - Describe targets by generic structural phenotypes such as chain topology, hotspot distribution and interface failure mode.
+  - Express binder lengths as relative positions within the user range.
+  - Express parameter actions as increase, decrease, hold, broaden, narrow, enable or disable.
+  - Keep exact target facts only in hashed audit provenance, never in prompt-visible rule text.
+runtime_logic:
+  role: updater_contract
+  strict_required_inputs: true
+output_schema:
+  canonical_signature: object
+risk: Excessive abstraction can remove the condition that made a strategy useful.

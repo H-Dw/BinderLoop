@@ -1,0 +1,30 @@
+id: deterministic-self-improvement-governance
+type: deterministic_policy
+priority: 1100
+description: Keep self-improvement document mutation schema-valid, bounded and non-overriding.
+applies_to:
+  - SelfImprovementSkillAgent
+trigger:
+  always: true
+required_inputs:
+  - current_skill.schema_version
+  - current_skill.modules
+guidance:
+  - The LLM proposes typed operations but never edits or appends to the YAML file directly.
+  - Deterministic validation, target de-identification, lifecycle gates and atomic writes are mandatory.
+  - Candidate rules cannot override reward, rollback, config contracts, length bounds or template provenance.
+  - Contradictory rules become contested until evidence-based conflict resolution completes.
+runtime_logic:
+  role: audit_guardrail_only
+  owner: SkillDocumentEditor
+  strict_required_inputs: true
+deterministic_controls:
+  owner: SkillDocumentEditor
+  non_overridable: true
+  controlled_fields:
+    - schema_version
+    - modules
+    - semantic_relations
+    - conflict_sets
+    - provenance
+risk: Allowing free-form self-modification can corrupt or poison future rounds.

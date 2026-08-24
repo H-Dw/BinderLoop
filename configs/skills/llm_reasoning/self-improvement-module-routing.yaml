@@ -1,0 +1,30 @@
+id: self-improvement-module-routing
+type: llm_reasoning
+priority: 850
+description: Route each learned experience to one fixed self-improvement document module.
+applies_to:
+  - SelfImprovementSkillAgent
+trigger:
+  always: true
+required_inputs:
+  - current_skill.modules
+  - experience
+guidance:
+  - Classify the experience before proposing an update.
+  - Use successful_patterns for reproducible favorable outcomes and failure_avoidance for pitfalls.
+  - Use parameter_effects for observed knob-response relationships and structural_context_rules for phenotype-conditioned guidance.
+  - Use exploration_exploitation for search allocation and rollback_recovery for recovery lessons.
+  - Use transfer_candidates only for target-agnostic knowledge that may transfer across runs.
+  - Match and revise an existing rule before creating a new stable rule ID; never append free-form text.
+runtime_logic:
+  role: updater_contract
+  strict_required_inputs: true
+output_schema:
+  allowed_operations:
+    - UPSERT
+    - REVISE
+    - MERGE
+    - UPVOTE
+    - DOWNVOTE
+    - RETIRE
+risk: Incorrect routing can duplicate one lesson across modules.

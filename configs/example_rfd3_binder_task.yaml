@@ -1,0 +1,100 @@
+schema_version: 1
+owner:
+  task_hard_constraints:
+    task_name: example_rfd3_pdl1
+    target_structure_path: examples/bg_example/PD-L1.cif
+    target_chain_id: A
+    hotspots:
+    - A:56
+    - A:115
+    - A:123
+    binder_length_range:
+    - 50
+    - 50
+    binder_length_step: 10
+    notes: PD-L1 mmCIF (label 1-116 / auth 17-132). RFD3 reads label_seq_id; residue_id_scheme=auto remaps official auth hotspots A56/A115/A123 and range 17-132.
+    num_designs: 2
+    target_include:
+    - chain:
+        id: A
+        res_index: 17-132
+  rfd3_design_native:
+    steps:
+    - design
+    - inverse_folding
+    - folding
+    diffusion_batch_size: 1
+    n_batches: 2
+    infer_ori_strategy: hotspots
+    is_non_loopy: true
+    redesign_motif_sidechains: false
+    dialect: 2
+    step_scale: 3.0
+    gamma_0: 0.2
+    skip_existing: false
+    prevalidate_inputs: true
+    binder_chain: A
+    target_res_index: 17-132
+    residue_id_scheme: auto
+    rfd3_residue_scheme: native
+    select_hotspots:
+      A56: CG,OH
+      A115: CG,SD
+      A123: CD2,OH
+  rfd3_inverse_fold_and_validation:
+    model_type: protein_mpnn
+    is_legacy_weights: true
+    inverse_fold_num_sequences: 1
+    temperature: 0.1
+    designed_chains: A
+  rfd3_filtering_ranking:
+    refolding_rmsd_threshold: 2.0
+  harness_search_space:
+    model_order:
+    - rfd3
+  active_learning_and_rollback:
+    enable_strategy_skills: true
+    enable_exploitation_arms: false
+    max_rounds: 2
+    strategy: successive_halving
+    top_k: 4
+    exploration_ratio: 0.3
+    branch_width: 2
+  parameter_decision:
+    sampler_axes:
+    - step_scale
+    - gamma_0
+    step_scale_candidates:
+    - 1.5
+    - 2.5
+    - 3.0
+    - 3.5
+    gamma_0_candidates:
+    - 0.1
+    - 0.2
+    - 0.4
+    - 0.6
+  sequence:
+    tool: protein_mpnn
+  refolding:
+    tool: rf3
+  runtime_resources:
+    runtime:
+      project_root: ..
+      foundry_root: models/foundry
+      output_dir: outputs/example_rfd3_run
+      python_bin: python
+      conda_base: /data1/dhuang/miniconda3
+      conda_executable: conda
+      model_runtimes:
+        rfd3:
+          conda_env: foundry
+          weights_path: /data1/dhuang/foundry/checkpoints
+    resource:
+      backend: dry_run
+      host_num: 1
+      host_gpu_num: 1
+      max_parallel_jobs: 1
+  llm_context_learning:
+    self_improvement:
+      enabled: false

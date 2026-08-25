@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blind hotspot prediction",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "condition",
+    "replicate",
+    "primary_hotspots",
+    "alternate_hotspots",
+    "pocket_groups",
+    "structural_rationale",
+    "recognition_status",
+    "compliance"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string"},
+    "condition": {
+      "enum": ["named_no_web", "anonymous_no_web", "anonymous_generic_packet"]
+    },
+    "replicate": {"enum": [1, 2, 3]},
+    "primary_hotspots": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^T[1-9][0-9]*:[1-9][0-9]*$"}
+    },
+    "alternate_hotspots": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^T[1-9][0-9]*:[1-9][0-9]*$"}
+    },
+    "pocket_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {"type": "string", "pattern": "^T[1-9][0-9]*:[1-9][0-9]*$"}
+      }
+    },
+    "structural_rationale": {"type": "string"},
+    "recognition_status": {"enum": ["none", "suspected", "recognized"]},
+    "analysis_summary": {"type": "string"},
+    "compliance": {
+      "type": "object",
+      "required": [
+        "labels_seen",
+        "target_search_used",
+        "other_runs_seen",
+        "files_read",
+        "commands_run",
+        "files_created"
+      ],
+      "properties": {
+        "labels_seen": {"const": false},
+        "target_search_used": {"const": false},
+        "other_runs_seen": {"const": false},
+        "files_read": {"type": "array", "items": {"type": "string"}},
+        "commands_run": {"type": "array", "items": {"type": "string"}},
+        "files_created": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "additionalProperties": true
+}
